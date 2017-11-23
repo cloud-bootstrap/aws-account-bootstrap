@@ -1,0 +1,64 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >-
+  Template for Setting up your account for terraform
+
+# Metadata:
+#   template metadata
+
+Parameters:
+  TerraformBucketNameParameter:
+    Type: String
+    Description: Bucket Name for terraform
+  TerraformLockTableParameter:
+    Type: String
+    Description: DynamoDB Table Name for terraform
+
+# Mappings:
+#   set of mappings
+
+# Conditions:
+#   set of conditions
+
+# Transform:
+#   set of transforms
+
+Resources:
+  AdminGroup:
+    Type: "AWS::IAM::Group"
+    Properties:
+      GroupName: admin
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+
+  TerraformUser:
+    Type: "AWS::IAM::User"
+    Properties:
+      UserName: terraform
+      Path: /service_account/
+
+  TerraformBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Ref: TerraformBucketNameParameter
+      VersioningConfiguration:
+        Status: Enabled
+
+  TerraformStateDB:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName:
+        Ref: TerraformLockTableParameter
+      KeySchema:
+        - AttributeName: "LockID"
+          KeyType: "HASH"
+      AttributeDefinitions:
+        - AttributeName: "LockID"
+          AttributeType: "S"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "5"
+        WriteCapacityUnits: "5"
+# Outputs:
+#   set of outputs
